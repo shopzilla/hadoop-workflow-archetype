@@ -10,7 +10,7 @@
 
   <groupId>com.shopzilla.opensource.hadoop</groupId>
   <artifactId>hadoop-workflow-archetype</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 
   <name>Shopzilla Open Source - Hadoop Workflow Archetype</name>
   <description>Shopzilla Open Source - Hadoop Workflow Archetype</description>
