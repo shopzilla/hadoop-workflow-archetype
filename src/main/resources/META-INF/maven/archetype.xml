@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype/1.0.0 http://maven.apache.org/xsd/archetype-1.0.0.xsd">
+  <id>hadoop-workflow-archetype</id>
+  <sources>
+    <source>src/main/java/driver/SampleDriver.java</source>
+    <source>src/main/java/fs/FileSystemBaseTasklet.java</source>
+    <source>src/main/java/fs/PersistResultsTasklet.java</source>
+    <source>src/main/java/mr/WordCountMapper.java</source>
+    <source>src/main/java/mr/WordCountReducer.java</source>
+    <source>src/main/java/tasklet/WordCountTasklet.java</source>
+  </sources>
+  <resources>
+    <resource>src/main/resources/pig/filter_counts.pig</resource>
+    <resource>src/main/resources/driver-context.xml</resource>
+    <resource>src/main/resources/spring-batch-hadoop-base.xml</resource>
+    <resource>src/main/resources/wordcount-job-context.xml</resource>
+  </resources>
+  <testSources>
+    <source>src/test/java/mr/integration/BaseMiniMRClusterTest.java</source>
+    <source>src/test/java/mr/integration/WordCountIntegrationTest.java</source>
+    <source>src/test/java/mr/unit/FilterCountsPigUnitTest.java</source>
+    <source>src/test/java/mr/unit/WordCountMRUnitTest.java</source>
+  </testSources>
+  <testResources>
+    <resource>src/test/resources/base-test-context.xml</resource>
+    <resource>src/test/resources/log4j.properties</resource>
+    <resource>src/test/resources/wordcount.properties</resource>
+    <resource>src/test/resources/test_fs/data/staging/sample/input/lights.txt</resource>
+  </testResources>
+</archetype>

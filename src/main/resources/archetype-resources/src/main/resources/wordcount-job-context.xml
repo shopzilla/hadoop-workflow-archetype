@@ -1,0 +1,62 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:hadoop="http://www.springframework.org/schema/hadoop"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch-2.1.xsd
+        http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+  <import resource="spring-batch-hadoop-base.xml" />
+
+  <batch:job id="wordCountJob">
+    <batch:step id="wordCountStep" next="filterCountsStep">
+      <batch:tasklet ref="wordCountTasklet" />
+    </batch:step>
+    <batch:step id="filterCountsStep" next="publishFilteredDataToProductionFolderStep">
+      <batch:tasklet ref="filterCountsTasklet" />
+    </batch:step>
+    <batch:step id="publishFilteredDataToProductionFolderStep">
+      <batch:tasklet ref="publishFilteredDataToProductionFolderTasklet" />
+    </batch:step>
+  </batch:job>
+
+  <!-- Count the words in the input file -->
+  <bean id="wordCountTasklet" class="${package}.tasklet.WordCountTasklet" scope="step">
+    <property name="configuration" ref="hadoop-configuration"/>
+    <property name="input" value="${symbol_dollar}{WORDCOUNT_INPUT_FOLDER}/" />
+    <property name="output" value="${symbol_dollar}{WORDCOUNT_OUTPUT_FOLDER}/" />
+    <property name="jobPool" value="${symbol_dollar}{JOB_POOL}" />
+    <property name="hadoopJobName" value="sample-word-count" />
+  </bean>
+
+  <!-- filter down the words to only include those with (count > WORDCOUNT_MINIMUM_THRESHOLD) -->
+  <hadoop:pig-tasklet id="filterCountsTasklet" pig-server-ref="pigServer" scope="step">
+    <hadoop:script location="classpath:pig/filter_counts.pig">
+      <!-- these properties will be available within the pig script -->
+      <hadoop:arguments>
+        JOB_POOL=${symbol_dollar}{JOB_POOL}
+        WORDCOUNT_OUTPUT_FOLDER=${symbol_dollar}{WORDCOUNT_OUTPUT_FOLDER}
+        WORDCOUNT_FILTERED_OUTPUT_FOLDER=${symbol_dollar}{WORDCOUNT_FILTERED_OUTPUT_FOLDER}
+        WORDCOUNT_MINIMUM_THRESHOLD=${symbol_dollar}{WORDCOUNT_MINIMUM_THRESHOLD}
+      </hadoop:arguments>
+    </hadoop:script>
+  </hadoop:pig-tasklet>
+
+  <!-- If the pig job set the _SUCCESS flag, move the data to our production folder -->
+  <bean id="publishFilteredDataToProductionFolderTasklet" class="${package}.fs.PersistResultsTasklet" scope="step">
+    <property name="testPath" value="${symbol_dollar}{WORDCOUNT_FILTERED_OUTPUT_FOLDER}/_SUCCESS" />
+    <property name="shouldTestForDirectory" value="false" />
+    <property name="sourcePath" value="${symbol_dollar}{WORDCOUNT_FILTERED_OUTPUT_FOLDER}/" />
+    <property name="destPath" value="${symbol_dollar}{WORDCOUNT_PRODUCTION_FOLDER}/" />
+    <property name="fsShell" ref="fsh"/>
+  </bean>
+
+</beans>
